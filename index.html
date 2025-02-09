@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baccarat Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000c1f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #game-container {
+      text-align: center;
+      background: linear-gradient(145deg, #002b55, #005bb5);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 30px rgba(255, 255, 255, 0.25);
+      max-width: 420px;
+      width: 100%;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 34px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+    #balance {
+      font-size: 24px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    #bet-amount {
+      width: 85%;
+      padding: 14px;
+      font-size: 20px;
+      border: 2px solid #0073e6;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: center;
+      background-color: #ffffff;
+      color: #000;
+      font-weight: bold;
+    }
+    .bet-buttons button,
+    #top-up,
+    #all-in {
+      padding: 16px 30px;
+      margin: 12px;
+      font-size: 20px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(145deg, #0073e6, #004c8c);
+      color: white;
+      transition: transform 0.2s ease-in-out, background 0.3s ease-in-out;
+    }
+    .bet-buttons button:hover,
+    #top-up:hover,
+    #all-in:hover {
+      background: linear-gradient(145deg, #008cff, #0055b5);
+      transform: scale(1.08);
+    }
+    #result,
+    #cards {
+      margin-top: 25px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .card {
+      display: inline-block;
+      width: 70px;
+      height: 100px;
+      background: white;
+      color: black;
+      font-size: 26px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 100px;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      margin: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <h1>Baccarat Game</h1>
+    <div id="balance">Balance: $1000</div>
+    <input type="number" id="bet-amount" placeholder="Enter bet amount" min="1" />
+    <div class="bet-buttons">
+      <button onclick="placeBet('Player')">Bet on Player</button>
+      <button onclick="placeBet('Banker')">Bet on Banker</button>
+      <button onclick="placeBet('Tie')">Bet on Tie</button>
+    </div>
+    <button id="all-in" onclick="allIn()">All In</button>
+    <button id="top-up" onclick="topUp()">Top Up</button>
+    <div id="cards"></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let balance = 1000;
+
+    function placeBet(bet) {
+      const betAmount = parseInt(document.getElementById('bet-amount').value);
+      if (isNaN(betAmount) || betAmount <= 0 || betAmount > balance) {
+        alert("Invalid bet amount!");
+        return;
+      }
+      
+      const result = playBaccarat();
+      const resultElement = document.getElementById('result');
+      const balanceElement = document.getElementById('balance');
+      const cardsElement = document.getElementById('cards');
+
+      if (result.winner === bet) {
+        balance += betAmount;
+        resultElement.textContent = `You win! ${result.winner} wins.`;
+      } else {
+        balance -= betAmount;
+        resultElement.textContent = `You lose! ${result.winner} wins.`;
+      }
+      
+      cardsElement.innerHTML = `
+        <div>Player's cards: ${displayCards(result.playerCards)} (Score: ${result.playerScore})</div>
+        <div>Banker's cards: ${displayCards(result.bankerCards)} (Score: ${result.bankerScore})</div>
+      `;
+      
+      balanceElement.textContent = `Balance: $${balance}`;
+    }
+
+    function allIn() {
+      document.getElementById('bet-amount').value = balance;
+    }
+
+    function topUp() {
+      if (balance < 1000) {
+        balance = 1000;
+        document.getElementById('balance').textContent = `Balance: $${balance}`;
+      }
+    }
+
+    function playBaccarat() {
+      const playerCards = [drawCard(), drawCard()];
+      const bankerCards = [drawCard(), drawCard()];
+
+      let playerScore = calculateScore(playerCards);
+      let bankerScore = calculateScore(bankerCards);
+
+      if (playerScore <= 5) {
+        playerCards.push(drawCard());
+        playerScore = calculateScore(playerCards);
+      }
+      if (bankerScore <= 5) {
+        bankerCards.push(drawCard());
+        bankerScore = calculateScore(bankerCards);
+      }
+
+      let winner;
+      if (playerScore > bankerScore) {
+        winner = 'Player';
+      } else if (bankerScore > playerScore) {
+        winner = 'Banker';
+      } else {
+        winner = 'Tie';
+      }
+
+      return { playerCards, bankerCards, playerScore, bankerScore, winner };
+    }
+
+    function drawCard() {
+      return Math.floor(Math.random() * 10) + 1; // Returns a card between 1 and 10
+    }
+
+    function calculateScore(cards) {
+      const total = cards.reduce((sum, card) => sum + card, 0);
+      return total % 10;
+    }
+
+    function displayCards(cards) {
+      return cards.map(card => `<span class='card'>${card}</span>`).join(' ');
+    }
+  </script>
+</body>
+</html>
